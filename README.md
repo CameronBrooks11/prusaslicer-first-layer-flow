@@ -31,6 +31,24 @@ For one-layer prints:
 python3 scripts/validate-gcode.py /path/to/output.gcode --expect-first-layer 102 --expect-reset 100 --allow-missing-reset
 ```
 
+### Exit codes
+
+| code | meaning |
+| ---- | ------- |
+| `0` | verified — the markers are present and the values are the expected ones |
+| `1` | wrong — the markers are present and a value is not what was expected |
+| `2` | **could not tell** — no `FIRST_LAYER_FLOW_APPLY` marker, so the feature never ran and nothing was validated |
+| `4` | could not read the file named on the command line |
+
+**`2` is not a finding about the print.** It means the custom G-code did not run at all,
+so the remedy is to check the printer profile's Custom G-code and re-slice — not to change
+a flow value. It exists because the validator used to report this case as `0`: with the
+markers absent it fell back to "the first `M221` in the file" and "the second", and `M221`
+appears routinely in ordinary G-code, so an uninstalled feature could match by coincidence
+and pass.
+
+Regression tests: `./scripts/test-validate-gcode.sh`.
+
 ## Behavior Contract
 
 - Custom parameter key: `first_layer_extrusion_multiplier`
